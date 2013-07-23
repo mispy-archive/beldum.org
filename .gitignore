@@ -1,0 +1,6 @@
+*.fuse_hidden*
+*.swp
+log
+config/database.yml
+tmp
+public/images/sugimori_art

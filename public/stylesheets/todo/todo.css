@@ -1,0 +1,25 @@
+span.heading {
+  font-size: 250%;
+}
+
+.ajax_load {
+  display: none;
+}
+
+.todo_item input.complete {
+  
+}
+
+.todo_item .description {
+  cursor: pointer;
+}
+
+.todo_item a.delete {
+  color: red;
+  cursor: pointer;
+  font-size: 80%;
+}
+
+img.smile {
+}
+

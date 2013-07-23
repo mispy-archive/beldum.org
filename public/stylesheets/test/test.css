@@ -1,0 +1,13 @@
+#mainContent  {
+  padding: 0px;
+  border: 1px solid #0F3;
+  margin-top: 0;
+  margin-right: 30%;
+  margin-bottom: 0;
+  margin-left: 0;
+} 
+
+#sidebar1 h3 ,#sidebar1 p   {
+  margin-left: 10px; /* the left and right margin should be given to every element        that will be placed in the side columns */
+  margin-right: 10px;
+}

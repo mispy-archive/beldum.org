@@ -1,0 +1,129 @@
+* {
+    outline: none;
+}
+body {
+    margin: 0;
+    padding: 0;
+    color: #343434;
+    font: 13px arial;
+    /*background: transparent url(../img/body-bg.png);*/
+    text-align: center;
+}
+a {
+    color: #205aaf;
+    text-decoration: none;
+}
+a img {
+    border: 0;
+}
+a:hover {
+    color: #343434;
+}
+#countdown {
+    margin: 0 auto;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+#countdown .ball {
+    width: 32px;
+    height: 32px;
+    position: absolute;
+}
+#gradient {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: transparent url(../img/gradient.png) no-repeat 50% -100px;
+    z-index: 1;
+    height: 1236px;
+}
+body.degrade #gradient {
+    display: none;
+}
+#header {
+    height: 225px;
+    position: relative;
+    margin: 0 auto;
+    width: 930px;
+    z-index: 10;
+}
+#header h3, #countdown h3 {
+    font-family: 'Droid Sans', arial;
+    font-weight: normal;
+    color: #898989;
+    position: absolute;
+    padding-top: 15px;
+    bottom: 90px;
+    right: -22px;
+    font-size: 21px;
+    background: transparent url(../img/map-icon.png) no-repeat bottom right;
+    height: 21px;
+    line-height: 21px;
+    margin: 0;
+    width: 515px;
+    z-index: 99;
+}
+#countdown h3 a {
+    color: #898989;
+    padding-right: 45px;
+    position: absolute;
+    z-index: 99;
+}
+#logo {
+    position: absolute;
+    bottom: 40px;
+    left: 0;
+    z-index: 99;
+}
+#countdown li {
+    position: relative;
+    list-style: none;
+    margin: 0 0 0 6px;
+    padding: 0;
+    float: left;
+    background: transparent url(../img/nav-button-left-sprite.png) no-repeat top left;
+}
+#countdown li a {
+    display: block;
+    background-image: url(../img/nav-button-sprite.png);
+    background-repeat: no-repeat;
+    background-position: top right;
+    height: 31px;
+    margin-left: 10px;
+    line-height: 31px;
+    font-family: 'Droid Sans', Arial;
+    font-size: 16px;
+    padding: 0 20px 0 10px;
+}
+#countdown li:hover {
+    background-position: left -33px;
+}
+#countdown li:hover > a {
+    background-position: right -33px;
+    color: #205aaf;
+}
+#countdown li:active,
+#countdown li.active {
+    background-position: left -66px;
+}
+#countdown li:active > a, #countdown li.active > a,
+
+#canvas-content {
+    margin: 100px auto 0 auto;
+    z-index: 99;
+    width: 1035px;
+    position: relative;
+}
+
+#credits {
+  position: absolute;
+  top: 800px;
+}
+
+#final_image {
+  display: none;
+}

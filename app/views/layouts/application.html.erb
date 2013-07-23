@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <% title = yield :title %>
+  <title><%= title.empty? ? '' : (title + " | ") %>Beldum Labs</title>
+  <% desc = yield :desc %>
+  <meta name="description" content="<%= desc.empty? ? 'Beldum Laboratories provides the finest in Pokémon research technology.' : desc %>">
+  <link rel="shortcut icon" type="image/png" href="/images/favicon.png">
+  <%= stylesheet_link_tag 'global.css' %>
+  <%= javascript_include_tag 'jquery-1.4.3.min' %>
+  <%= csrf_meta_tag %>
+  <script type="text/javascript">
+
+	var _gaq = _gaq || [];
+	_gaq.push(['_setAccount', 'UA-26606225-3']);
+	_gaq.push(['_trackPageview']);
+
+	(function() {
+	  var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+	  ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+	  var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+	})();
+
+  </script>
+  <%= yield :head %>
+</head>
+<body>
+
+<div id="wrapper">
+  <div id="header">
+    <div id="logo">
+      <a href="<%= root_url %>"></a>
+    </div>
+    <%= yield :header %>
+  </div>
+
+  <div id="main">
+    <%= yield %>
+  </div>
+
+  <div id="footer">
+    <div id="credits">
+      <div id="footer_left">
+        <div class="mispy">A <a href="http://mispy.me/">mispy</a> creation.</div>
+        <div class="veekun">Powered by <a href="http://veekun.com/">veekun</a> data.</div>
+      </div>
+      <div id="footer_right">
+        <% if user_signed_in? %>
+          <%= appropriate_greeting %>, <strong><%= current_user.email %></strong>
+          (<a id="sign_out" href="/users/sign_out">Logout</a>)
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+  <p class="notice"><%= notice %></p>
+  <p class="alert"><%= alert %></p>
+
+
+</body>
+</html>

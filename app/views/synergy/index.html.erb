@@ -1,0 +1,151 @@
+<% content_for :title do %><%= params[:species].nil? ? '' : "#{@subject.name} - " %>Synergy Pokédex<% end %>
+<% content_for :desc do %><%= params[:species].nil? ? 'Displays defensive synergy relationships between a given Pokémon and all others.' : "Displaying defensive synergy relationships between #{@subject.name} and all other Pokémon." %><% end %>
+
+<% content_for :head do %>
+  <%= javascript_include_tag 'jquery.tablesorter.min.js' %>
+  <%= javascript_include_tag 'synergy.js' %>
+  <%= stylesheet_link_tag 'synergy/synergy.css' %>
+  <script type="text/javascript">
+  /* <![CDATA[ */
+      (function() {
+          var s = document.createElement('script'), t = document.getElementsByTagName('script')[0];
+          s.type = 'text/javascript';
+          s.async = true;
+          s.src = 'http://api.flattr.com/js/0.6/load.js?mode=auto';
+          t.parentNode.insertBefore(s, t);
+      })();
+  /* ]]> */
+  </script>
+<% end %>
+
+<% content_for :header do %>
+<% end %>
+
+<div id="left">
+  <h2>Synergy Pokédex</h2>
+
+  <form id="synergy_form" action="/synergy" method="get">
+    <div class="option_row">
+      <%= pokemon_selector :selected => @subject.identifier %><br/>
+    </div>
+
+    <div class="option_row">
+      <label for="gen">Gen</label>
+      <select id="gen" name="gen">
+        <% 5.downto(1).each do |gen| %>
+          <option value=<%= gen %> <%= @gen == gen ? 'selected' : '' %>><%= gen %></option>
+        <% end %>
+      </select>
+
+      <span id="tier_container">
+        <label for="tier">Tier</label>
+        <select id="tier" name="tier">
+          <option value="all">All</option>
+          <% Tier.all.each do |tier| %>
+            <option class="tier gen<%= tier.generation_id %>" value="<%= tier.identifier %>" <%= @tier == tier ? 'selected' : '' %>><%= tier.shortname %></option>
+          <% end %>
+        </select>
+      </span>
+    </div>
+
+
+    <div class="option_row">
+      <span id="nfe_container">
+        <input type="checkbox" id="nfe" name="nfe" <%= params[:nfe] ? 'checked' : '' %> />
+        <label for="nfe">Include NFE</label><br/>
+      </span>
+    </div>
+
+    <div id="calculate_container" class="option_row">
+      <input type="submit" value="Calculate" />
+    </div>
+  </form>
+
+  <div id="explanation">
+    <p>This tool displays the defensive relationships between a given Pokémon and all others, based on their types and abilities.</p><br/>
+    <p>Two Pokémon scoring highly together suggests they complement each other's weaknesses well, and would make good teammates.</p>
+  </div>
+  <br/>
+</div>
+
+<div id="right">
+  <div><span id="subject_name">#<%= @subject.number %> <%= @subject.name %></span>
+  <% if params[:species].nil? %>(showing random)<% end %></div>
+  <%= raw @subject.sugimori %><br/>
+
+  <% types = @subject.types_by_gen(@gen) %>
+  <div id="subject_type"><% if types.length == 1 %>
+    <%= types[0].identifier.capitalize %>
+  <% else %>
+    <%= types[0].identifier.capitalize %> / <%= types[1].identifier.capitalize %>
+  <% end %></div>
+
+  <% unless @form.nil? %>
+  <div class="subject_forms">
+    <strong>Forms</strong>
+    <% @form.form_base_pokemon.forms.each do |form| %><br/>
+      <% name = form.name.empty? ? 'Normal' : form.name %>
+      <span class="form"><% if form == @form %>
+        <strong><%= name %></strong>
+      <% else %>
+          <a href="/synergy?species=<%= @subject.identifier %><%= (form.identifier.nil?||form.identifier.empty?) ? '' : "&form=#{form.identifier}" %><%= params[:nfe] == 'on' ? "&nfe=on" : '' %><%= params[:gen] ? "&gen=#{params[:gen]}" : '' %><%= params[:tier] ? "&tier=#{params[:tier]}" : '' %>"><%= name %></a>
+      <% end %></span>
+    <% end %>
+  </div>
+  <% end %>
+
+  <% unless @ability.nil? %>
+    <div class="subject_abilities">
+      <strong>Abilities</strong>
+      <% @subject.abilities_by_gen(@gen).each do |abil| %><br/>
+        <span class="ability"><% if abil == @ability %>
+          <strong><%= abil.name %></strong>
+        <% else %>
+          <a href="/synergy?species=<%= @subject.identifier %><%= (@form&&@form.identifier) ? "&form=#{@form.identifier}" : '' %><%= "&ability=#{abil.identifier}" %><%= params[:nfe] == 'on' ? "&nfe=on" : '' %><%= params[:gen] ? "&gen=#{params[:gen]}" : '' %><%= params[:tier] ? "&tier=#{params[:tier]}" : '' %>"><%= abil.name %></a>
+        <% end %></span>
+      <% end %>
+    </div>
+  <% end %>
+
+</div>
+
+<div id="middle">
+  <div id="content">
+    <table id="synergy_table" class="tablesorter">
+      <thead>
+        <tr>
+          <th class="candidates">Candidates</th>
+          <th class="why defending">Why</th>
+          <th class="score defending">Defends <%= @subject.identifier.capitalize %></th>
+          <th class="score combined">Combined Score</th>
+          <th class="score defended">Defended by <%= @subject.identifier.capitalize %></th>
+          <th class="why defended">Why</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @table.values.each do |row| %>
+          <tr>
+            <td class="candidates">
+              <% row[0].sort { |x, y| x[0].nil? ? 1 : -1 }.each do |ability, pokes| %>
+                <div class='ability_group'>
+                  <% pokes.each do |poke| %>
+                    <a href="/synergy?species=<%= poke.identifier %><%= (poke.form&&poke.form.identifier) ? "&form=#{poke.form.identifier}" : '' %><%= (ability&&ability.identifier) ? "&ability=#{ability.identifier}" : '' %><%= params[:nfe] == 'on' ? "&nfe=on" : '' %><%= params[:gen] ? "&gen=#{params[:gen]}" : '' %><%= params[:tier] ? "&tier=#{params[:tier]}" : '' %>"><%= raw poke.icon %></a>
+                  <% end %>
+                  <% unless ability.nil? %><br/>
+                    <span class='ability'><%= ability.identifier.split('-').map(&:capitalize).join(' ') %></span>
+                  <% end %>
+                </div>
+              <% end %>
+            </td>
+            <td class="why defending"><%= raw row[1].join('<br/>') %></td>
+            <td class="score defending"><%= raw row[2] %>%</td>
+            <td class="score combined"><%= raw row[3] %>%</td>
+            <td class="score defended"><%= raw row[4] %>%</td>
+            <td class="why defended"><%= raw row[5].join('<br/>') %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
