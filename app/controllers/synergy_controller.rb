@@ -1,5 +1,5 @@
 class SynergyController < ApplicationController
-  caches_action :index, :cache_path => proc { |c| c.params }, :if => proc { |c| c.params[:species] }
+  #caches_action :index, :cache_path => proc { |c| c.params }, :if => proc { |c| c.params[:species] }
 
   def index
     if params[:species].nil? || params[:species].empty?
@@ -35,7 +35,7 @@ class SynergyController < ApplicationController
 
     pokemon = pokemon.fully_evolved unless @tier || params[:nfe] == 'on'
 
-    pokemon = pokemon.find(:all, :include => [{ :abilities => [:text, :ability_names] }, :types, :text, :form])
+    pokemon = pokemon.includes({ abilities: [:text, :ability_names] }, :types, :text, :form)
 
     synergies = Synergy.all(@subject, :ability => @ability, :against => pokemon, :gen => @gen)
     

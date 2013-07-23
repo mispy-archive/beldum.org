@@ -1,0 +1,20 @@
+<% content_for :head do %>
+  <%= stylesheet_link_tag 'todo/todo.css' %>
+  <%= javascript_include_tag 'todo.js' %>
+  <script>
+    var timestamp = "<%= Time.now.to_i %>";
+  </script>
+<% end %>
+
+<img class="ajax_load" src="/assets/icons/ajax16x16.gif" />
+<span class="heading">Todo!</span>
+<ul id="todo_list">
+<% current_user.todo_items.each do |item| %>
+  <li class="todo_item">
+    <input class="complete" type="checkbox" <%= item.complete ? 'checked' : '' %> ></input>
+    <span class="description"><%= item.description.empty? ? 'New' : item.description %></span>
+    <a class="delete">[x]</a>
+  </li>
+<% end %>
+</ul>
+<button id="add_item">Add New</button>

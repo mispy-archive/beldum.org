@@ -1,0 +1,13 @@
+development:
+  adapter: postgresql
+  database: beldum_development
+  pool: 2
+  username: mispy
+  password: 
+
+pokedex:
+  adapter: postgresql
+  database: pokedex
+  pool: 2
+  username: mispy
+  password: 

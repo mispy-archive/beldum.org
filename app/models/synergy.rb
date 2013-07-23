@@ -12,7 +12,7 @@ module Synergy
           total = 0.0
           dfs.each do |type, fac|
             if !fac.is_a?(String) && fac > 100.0
-              total += (Math.log(fac/25)/Math.log(2) - 2)
+              total += (Math.log2(fac/25)-2)
             end
           end
           total
@@ -27,7 +27,7 @@ module Synergy
             elsif fac == 'Absorb'; 4.0
             elsif fac == 'Power Up'; 4.0
             else
-              (Math.log(fac/25)/Math.log(2) - 2)*-1
+              (Math.log2(fac/25)-2)*-1
             end / 2.0
           }
 

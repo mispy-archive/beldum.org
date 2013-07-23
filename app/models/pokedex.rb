@@ -8,7 +8,7 @@ module Pokedex
       factors = {}
 
       types.each do |type|
-        Pokedex::TypeEfficacy.find(:all, :conditions => { :target_type_id => type.id }, :include => :damage_type).each do |efficacy|
+        Pokedex::TypeEfficacy.where(target_type_id: type.id).includes(:damage_type).each do |efficacy|
           dtype = efficacy.damage_type
           dfactor = efficacy.damage_factor
 
@@ -63,7 +63,7 @@ module Pokedex
 
       specifier = types.map { |type| type.id } + [ability ? ability.id : nil] + [gen]
 
-      @@factor_cache ||= Cache.get 'damage_factors'
+      @@factor_cache ||= Cache.read 'damage_factors'
       @@factor_cache ||= {}
 
       factors = @@factor_cache[specifier]
@@ -72,7 +72,7 @@ module Pokedex
         factors = calc_damage_factors(types, ability, gen)
 
         @@factor_cache[specifier] = factors
-        Cache.set 'damage_factors', @@factor_cache
+        Cache.write 'damage_factors', @@factor_cache
       end
 
       factors
@@ -92,7 +92,7 @@ module Pokedex
 
   class GamePokedex < ActiveRecord::Base
     include Pokedata
-    set_table_name "pokedexes"
+    self.table_name =  "pokedexes"
     
   end
 
@@ -106,17 +106,21 @@ module Pokedex
   class Pokemon < ActiveRecord::Base
     include Pokedata
 
-    scope :gen,
-      lambda { |num| { :conditions => ['generation_id <= ?', num] } }
+    def self.gen(num)
+      where('generation_id <= ?', num)
+    end
 
-    scope :not_fully_evolved,
-      :conditions => 'id in (select distinct from_pokemon_id from pokemon_evolution)'
+    def self.not_fully_evolved
+      where('id in (select distinct from_pokemon_id from pokemon_evolution)')
+    end
 
-    scope :fully_evolved,
-      :conditions => 'id not in (select distinct from_pokemon_id from pokemon_evolution)'
+    def self.fully_evolved
+      where('id not in (select distinct from_pokemon_id from pokemon_evolution)')
+    end
 
-    scope :default_forms,
-      :conditions => 'id < 10000'
+    def self.default_forms
+      where('id < 10000')
+    end
 
     belongs_to :generation 
     belongs_to :evolution_chain
@@ -128,18 +132,18 @@ module Pokedex
 
     has_and_belongs_to_many :egg_groups, :join_table => 'pokemon_egg_groups'
     has_and_belongs_to_many :types, :join_table => 'pokemon_types'
-    has_and_belongs_to_many :abilities, :join_table => 'pokemon_abilities', :include => :text, :select => "DISTINCT abilities.*"
+    has_and_belongs_to_many :abilities, -> { includes(:text).select("DISTINCT abilities.*") }, :join_table => 'pokemon_abilities'
     has_many :forms, :class_name => "Pokedex::PokemonForm", :foreign_key => "form_base_pokemon_id"
     has_one :form, :class_name => "Pokedex::PokemonForm", :foreign_key => "unique_pokemon_id"
     has_one :evolution, :foreign_key => 'from_pokemon_id'
     has_many :texts, :class_name => "Pokedex::PokemonName"
-    has_one :text, :class_name => "Pokedex::PokemonName", :conditions => { :local_language_id => 9 }
+    has_one :text, -> { where(local_language_id: 9) }, :class_name => "Pokedex::PokemonName"
     has_many :dex_numbers, :class_name => "Pokedex::PokemonDexNumber"
 
 
     def abilities_by_gen(gen)
       if gen < 5
-        self.abilities.gen(gen).find(:all, :conditions => { "pokemon_abilities.is_dream" => false })
+        self.abilities.gen(gen).where("pokemon_abilities.is_dream" => false)
       else
         self.abilities.gen(gen)
       end
@@ -178,9 +182,9 @@ module Pokedex
     def number(pokedex_id=1)
       if self.id >= 10000
         real_id = self.form ? self.form.form_base_pokemon_id : self.id
-        PokemonDexNumber.find(:first, :conditions => { :pokemon_id => real_id, :pokedex_id => pokedex_id }).pokedex_number
+        PokemonDexNumber.where(pokemon_id: real_id, pokedex_id: pokedex_id).first.pokedex_number
       else
-        self.dex_numbers.find(:first, :conditions => { :pokedex_id => pokedex_id }).pokedex_number
+        self.dex_numbers.where(pokedex_id: pokedex_id).first.pokedex_number
       end
     end
 
@@ -190,7 +194,7 @@ module Pokedex
 
     def sugimori_path
       form = (self.form && self.form.identifier)
-      "/images/sugimori_art/%.3d#{form ? '-'+form : ''}.png" % self.number
+      "/assets/sugimori_art/%.3d#{form ? '-'+form : ''}.png" % self.number
     end
 
     def sugimori
@@ -198,7 +202,7 @@ module Pokedex
     end
 
     def bw_sprite_path
-      "/images/bw_sprites/#{self.number}#{self.form&&self.form.identifier&&"-#{self.form.identifier}"}.png"
+      "/assets/bw_sprites/#{self.number}#{self.form&&self.form.identifier&&"-#{self.form.identifier}"}.png"
     end
 
     def bw_sprite
@@ -207,7 +211,7 @@ module Pokedex
 
     def bw_icon
       if self.form && self.form.identifier
-        "<img title='#{self.name}' src='/images/bw_icons/#{self.number}-#{self.form.identifier}.png'>"
+        "<img title='#{self.name}' src='/assets/bw_icons/#{self.number}-#{self.form.identifier}.png'>"
       else
         xpos = (self.id-1)%26
         ypos = (self.id-1)/26
@@ -277,7 +281,7 @@ module Pokedex
     belongs_to :form_base_pokemon, :class_name => "Pokedex::Pokemon"
     belongs_to :unique_pokemon, :class_name => "Pokedex::Pokemon"
     has_many :texts, :class_name => "Pokedex::PokemonFormName"
-    has_one :text, :class_name => "Pokedex::PokemonFormName", :conditions => { :local_language_id => 9 }
+    has_one :text, -> { where(local_language_id: 9) }, :class_name => "Pokedex::PokemonFormName"
 
     def name; self.text.name; end
   end
@@ -301,7 +305,9 @@ module Pokedex
   class PokemonFormName < ActiveRecord::Base
     include Pokedata
 
-    scope :english, :conditions => { :local_language_id => 9 }
+    def self.english
+      where(local_language_id: 9)
+    end
 
     belongs_to :pokemon
   end
@@ -309,7 +315,9 @@ module Pokedex
   class PokemonName < ActiveRecord::Base
     include Pokedata
 
-    scope :english, :conditions => { :local_language_id => 9 }
+    def self.english
+      where(local_language_id: 9)
+    end
 
     belongs_to :pokemon
   end
@@ -326,14 +334,16 @@ module Pokedex
   class Ability < ActiveRecord::Base
     include Pokedata
 
-    scope :gen,
-      lambda { |num| { :conditions => ['generation_id <= ?', num] } }
+    def self.gen(num)
+      where('generation_id <= ?', num)
+    end
 
     has_many :ability_names
     has_one :text, :class_name => "Pokedex::AbilityName", :conditions => { :local_language_id => 9 }
 
-    scope :type_modifiers,
-        :conditions => "identifier in ('#{TYPE_MODIFIERS.join("', '")}')"
+    def self.type_modifiers
+      where("identifier in ('#{TYPE_MODIFIERS.join("', '")}')")
+    end
 
     def type_modifier?
       TYPE_MODIFIERS.include?(self.identifier)
@@ -357,7 +367,7 @@ module Pokedex
   class Evolution < ActiveRecord::Base
     include Pokedata
 
-    set_table_name "pokemon_evolution"
+    self.table_name =  "pokemon_evolution"
 
     belongs_to :from_pokemon, :class_name => "Pokedex::Pokemon"
     belongs_to :to_pokemon, :class_name => "Pokedex::Pokemon"
@@ -401,7 +411,7 @@ module Pokedex
   class TypeEfficacy < ActiveRecord::Base
     include Pokedata
 
-    set_table_name "type_efficacy"
+    self.table_name =  "type_efficacy"
     belongs_to :damage_type, :class_name => "Pokedex::Type"
     belongs_to :target_type, :class_name => "Pokedex::Type"
   end

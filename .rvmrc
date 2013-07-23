@@ -1,2 +1,0 @@
-#!/bin/bash
-rvm use ruby-1.9.3-p392@beldum.org --create

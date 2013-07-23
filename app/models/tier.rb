@@ -1,11 +1,12 @@
 class Tier < ActiveRecord::Base
   has_many :pokemon_tiers
 
-  scope :gen,
-    lambda { |num| { :conditions => { :generation_id => num } } }
+  def gen(num)
+    where(generation_id: num)
+  end
 
   def pokemon
-    Pokedex::Pokemon.scoped(:conditions => ["id IN (?)", pokemon_tiers.map { |pt| pt.pokemon_id }])
+    Pokedex::Pokemon.where("id IN (?)", pokemon_tiers.map { |pt| pt.pokemon_id })
   end
 
   def add(poke)

@@ -2,7 +2,7 @@ module ApplicationHelper
   def pokemon_selector(opts={})
     html = "<select class='pokeselect' name='species'>"
     html += memcache do
-      pokemon = Pokedex::Pokemon.default_forms(:include => :text)
+      pokemon = Pokedex::Pokemon.default_forms.includes(:text)
       pokemon.map do |poke|
         "<option value=\"#{poke.identifier}\">#{poke.name}</option>"
       end.join

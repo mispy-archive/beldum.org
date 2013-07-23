@@ -1,8 +1,4 @@
 class MainController < ApplicationController
-  def index
-    redirect_to "/synergy"
-  end
-
   def test
     render :layout => false
     @remote_ip = request.remote_addr
