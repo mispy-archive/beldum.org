@@ -37,6 +37,8 @@ gem 'nokogiri'
 
 gem 'query_trace', group: :development
 
+gem 'dalli'
+
 # Use ActiveModel has_secure_password
 # gem 'bcrypt-ruby', '~> 3.0.0'
 
